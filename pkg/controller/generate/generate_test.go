@@ -396,7 +396,7 @@ packages:
 				Tags:     d.tags,
 			}
 			downloader := download.NewGitHubContentFileDownloader(gh, download.NewHTTPDownloader(logE, http.DefaultClient))
-			registryInstaller := registry.New(d.param, downloader, fs, d.rt, &cosign.MockVerifier{}, &slsa.MockVerifier{})
+			registryInstaller := registry.New(d.param, downloader, nil, fs, d.rt, &cosign.MockVerifier{}, &slsa.MockVerifier{})
 			configReader := reader.New(fs, d.param)
 			fuzzyFinder := fuzzyfinder.NewMock(d.idxs, d.fuzzyFinderErr)
 			ctrl := generate.New(configFinder, configReader, registryInstaller, gh, fs, fuzzyFinder, versiongetter.NewMockFuzzyGetter(map[string]string{}))

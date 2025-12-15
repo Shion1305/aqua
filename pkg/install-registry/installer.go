@@ -2,6 +2,7 @@ package registry
 
 import (
 	"context"
+	"io"
 
 	"github.com/aquaproj/aqua/v2/pkg/config"
 	"github.com/aquaproj/aqua/v2/pkg/config/registry"
@@ -16,6 +17,7 @@ import (
 
 type Installer struct {
 	registryDownloader GitHubContentFileDownloader
+	httpDownloader     HTTPDownloader
 	param              *config.Param
 	fs                 afero.Fs
 	cosign             CosignVerifier
@@ -23,10 +25,11 @@ type Installer struct {
 	rt                 *runtime.Runtime
 }
 
-func New(param *config.Param, downloader GitHubContentFileDownloader, fs afero.Fs, rt *runtime.Runtime, cos CosignVerifier, slsaVerifier SLSAVerifier) *Installer {
+func New(param *config.Param, downloader GitHubContentFileDownloader, httpDownloader HTTPDownloader, fs afero.Fs, rt *runtime.Runtime, cos CosignVerifier, slsaVerifier SLSAVerifier) *Installer {
 	return &Installer{
 		param:              param,
 		registryDownloader: downloader,
+		httpDownloader:     httpDownloader,
 		fs:                 fs,
 		rt:                 rt,
 		cosign:             cos,
@@ -36,6 +39,10 @@ func New(param *config.Param, downloader GitHubContentFileDownloader, fs afero.F
 
 type GitHubContentFileDownloader interface {
 	DownloadGitHubContentFile(ctx context.Context, logE *logrus.Entry, param *domain.GitHubContentFileParam) (*domain.GitHubContentFile, error)
+}
+
+type HTTPDownloader interface {
+	Download(ctx context.Context, u string) (io.ReadCloser, int64, error)
 }
 
 type SLSAVerifier interface {

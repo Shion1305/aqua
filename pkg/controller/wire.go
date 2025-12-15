@@ -80,7 +80,10 @@ func InitializeListCommandController(ctx context.Context, logE *logrus.Entry, pa
 			wire.Bind(new(list.ConfigReader), new(*reader.ConfigReader)),
 		),
 		afero.NewOsFs,
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			cosign.NewVerifier,
 			wire.Bind(new(installpackage.CosignVerifier), new(*cosign.Verifier)),
@@ -181,7 +184,10 @@ func InitializeGenerateCommandController(ctx context.Context, logE *logrus.Entry
 			wire.Bind(new(generate.FuzzyFinder), new(*fuzzyfinder.Finder)),
 			wire.Bind(new(versiongetter.FuzzyFinder), new(*fuzzyfinder.Finder)),
 		),
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			cosign.NewVerifier,
 			wire.Bind(new(installpackage.CosignVerifier), new(*cosign.Verifier)),
@@ -270,7 +276,10 @@ func InitializeInstallCommandController(ctx context.Context, logE *logrus.Entry,
 			link.New,
 			wire.Bind(new(installpackage.Linker), new(*link.Linker)),
 		),
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			osexec.New,
 			wire.Bind(new(installpackage.Executor), new(*osexec.Executor)),
@@ -384,7 +393,10 @@ func InitializeWhichCommandController(ctx context.Context, logE *logrus.Entry, p
 		),
 		osenv.New,
 		afero.NewOsFs,
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			link.New,
 			wire.Bind(new(installpackage.Linker), new(*link.Linker)),
@@ -477,7 +489,10 @@ func InitializeExecCommandController(ctx context.Context, logE *logrus.Entry, pa
 			wire.Bind(new(installpackage.Linker), new(*link.Linker)),
 			wire.Bind(new(which.Linker), new(*link.Linker)),
 		),
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			checksum.NewCalculator,
 			wire.Bind(new(installpackage.ChecksumCalculator), new(*checksum.Calculator)),
@@ -569,7 +584,10 @@ func InitializeUpdateAquaCommandController(ctx context.Context, logE *logrus.Ent
 			installpackage.New,
 			wire.Bind(new(updateaqua.AquaInstaller), new(*installpackage.Installer)),
 		),
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			download.NewDownloader,
 			wire.Bind(new(download.ClientAPI), new(*download.Downloader)),
@@ -717,7 +735,10 @@ func InitializeCopyCommandController(ctx context.Context, logE *logrus.Entry, pa
 			wire.Bind(new(installpackage.Linker), new(*link.Linker)),
 			wire.Bind(new(which.Linker), new(*link.Linker)),
 		),
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			checksum.NewCalculator,
 			wire.Bind(new(installpackage.ChecksumCalculator), new(*checksum.Calculator)),
@@ -823,7 +844,10 @@ func InitializeUpdateChecksumCommandController(ctx context.Context, logE *logrus
 			wire.Bind(new(domain.GitHubContentFileDownloader), new(*download.GitHubContentFileDownloader)),
 			wire.Bind(new(updatechecksum.GitHubContentFileDownloader), new(*download.GitHubContentFileDownloader)),
 		),
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			download.NewDownloader,
 			wire.Bind(new(download.ClientAPI), new(*download.Downloader)),
@@ -882,7 +906,10 @@ func InitializeUpdateCommandController(ctx context.Context, logE *logrus.Entry, 
 			download.NewGitHubContentFileDownloader,
 			wire.Bind(new(registry.GitHubContentFileDownloader), new(*download.GitHubContentFileDownloader)),
 		),
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			download.NewDownloader,
 			wire.Bind(new(download.ClientAPI), new(*download.Downloader)),
@@ -1023,7 +1050,10 @@ func InitializeRemoveCommandController(ctx context.Context, logE *logrus.Entry, 
 			wire.Bind(new(installpackage.CosignVerifier), new(*cosign.Verifier)),
 			wire.Bind(new(registry.CosignVerifier), new(*cosign.Verifier)),
 		),
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			osexec.New,
 			wire.Bind(new(cosign.Executor), new(*osexec.Executor)),
@@ -1105,7 +1135,10 @@ func InitializeVacuumInitCommandController(ctx context.Context, logE *logrus.Ent
 			download.NewGitHubContentFileDownloader,
 			wire.Bind(new(registry.GitHubContentFileDownloader), new(*download.GitHubContentFileDownloader)),
 		),
-		download.NewHTTPDownloader,
+		wire.NewSet(
+			download.NewHTTPDownloader,
+			wire.Bind(new(registry.HTTPDownloader), new(download.HTTPDownloader)),
+		),
 		wire.NewSet(
 			download.NewDownloader,
 			wire.Bind(new(download.ClientAPI), new(*download.Downloader)),

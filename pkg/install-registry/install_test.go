@@ -168,7 +168,9 @@ func TestInstaller_InstallRegistries(t *testing.T) { //nolint:funlen
 			if err != nil {
 				t.Fatal(err)
 			}
-			inst := registry.New(d.param, d.downloader, fs, rt, &cosign.MockVerifier{}, &slsa.MockVerifier{})
+			inst := registry.New(d.param, d.downloader, download.NewHTTPDownloader(logE, &http.Client{
+				Transport: &flute.Transport{},
+			}), fs, rt, &cosign.MockVerifier{}, &slsa.MockVerifier{})
 			registries, err := inst.InstallRegistries(ctx, logE, d.cfg, d.cfgFilePath, nil)
 			if err != nil {
 				if d.isErr {

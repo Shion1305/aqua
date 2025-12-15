@@ -114,5 +114,8 @@ func (is *Installer) getRegistry(ctx context.Context, logE *logrus.Entry, regist
 	if registry.Type == aqua.RegistryTypeGitHubContent {
 		return is.getGitHubContentRegistry(ctx, logE, registry, registryFilePath, checksums)
 	}
+	if registry.Type == aqua.RegistryTypeHTTP {
+		return is.getHTTPRegistry(ctx, logE, registry, registryFilePath, checksums)
+	}
 	return nil, errUnsupportedRegistryType
 }

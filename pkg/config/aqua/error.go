@@ -16,4 +16,10 @@ var (
 	errRefIsRequired = errors.New("ref is required for github_content registry")
 	// errRefCannotBeMainOrMaster is returned when github_content registry uses unstable refs
 	errRefCannotBeMainOrMaster = errors.New("ref cannot be 'main' or 'master' for github_content registry")
+	// errURLIsRequired is returned when an HTTP registry doesn't specify url
+	errURLIsRequired = errors.New("url is required for http registry")
+	// errVersionIsRequired is returned when an HTTP registry doesn't specify version
+	errVersionIsRequired = errors.New("version is required for http registry")
+	// errURLMustContainVersion is returned when an HTTP registry URL doesn't contain {{.Version}}
+	errURLMustContainVersion = errors.New("url must contain '{{.Version}}' template for http registry")
 )

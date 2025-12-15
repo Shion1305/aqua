@@ -1,7 +1,10 @@
 package aqua
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"path/filepath"
+	"strings"
 
 	"github.com/aquaproj/aqua/v2/pkg/osfile"
 	"github.com/sirupsen/logrus"
@@ -11,13 +14,16 @@ import (
 // Registry represents a package registry configuration.
 // It defines how to access and download package definitions from various sources.
 type Registry struct {
-	Name      string `json:"name,omitempty"`                                                                 // Registry name identifier
-	Type      string `json:"type,omitempty"       jsonschema:"enum=standard,enum=local,enum=github_content"` // Registry type (standard, local, github_content)
-	RepoOwner string `yaml:"repo_owner" json:"repo_owner,omitempty"`                                         // GitHub repository owner
-	RepoName  string `yaml:"repo_name" json:"repo_name,omitempty"`                                           // GitHub repository name
-	Ref       string `json:"ref,omitempty"`                                                                  // Git reference (tag, branch, commit)
-	Path      string `json:"path,omitempty"`                                                                 // Path to registry file or directory
-	Private   bool   `json:"private,omitempty"`                                                              // Whether the registry is private
+	Name      string `json:"name,omitempty"`                                                                            // Registry name identifier
+	Type      string `json:"type,omitempty"       jsonschema:"enum=standard,enum=local,enum=github_content,enum=http"` // Registry type (standard, local, github_content, http)
+	RepoOwner string `yaml:"repo_owner" json:"repo_owner,omitempty"`                                                    // GitHub repository owner
+	RepoName  string `yaml:"repo_name" json:"repo_name,omitempty"`                                                      // GitHub repository name
+	Ref       string `json:"ref,omitempty"`                                                                             // Git reference (tag, branch, commit)
+	Path      string `json:"path,omitempty"`                                                                            // Path to registry file or directory (also used for path inside archive for http type)
+	Private   bool   `json:"private,omitempty"`                                                                         // Whether the registry is private
+	URL       string `json:"url,omitempty"`                                                                             // HTTP(S) URL for http registry type
+	Version   string `json:"version,omitempty"`                                                                         // Version for http registry type
+	Format    string `json:"format,omitempty"`                                                                          // Archive format for http registry type (e.g., tar, tar.gz, zip)
 }
 
 // Registry type constants
@@ -28,6 +34,8 @@ const (
 	RegistryTypeLocal = "local"
 	// RegistryTypeStandard indicates the default aqua registry
 	RegistryTypeStandard = "standard"
+	// RegistryTypeHTTP indicates a registry accessible via HTTP(S)
+	RegistryTypeHTTP = "http"
 )
 
 // Validate validates the registry configuration based on its type.
@@ -38,6 +46,8 @@ func (r *Registry) Validate() error {
 		return r.validateLocal()
 	case RegistryTypeGitHubContent:
 		return r.validateGitHubContent()
+	case RegistryTypeHTTP:
+		return r.validateHTTP()
 	default:
 		return logerr.WithFields(errInvalidRegistryType, logrus.Fields{ //nolint:wrapcheck
 			"registry_type": r.Type,
@@ -73,13 +83,22 @@ func (r *Registry) UnmarshalYAML(unmarshal func(any) error) error {
 }
 
 // FilePath returns the file system path where the registry file is located.
-// The path format depends on the registry type (local vs GitHub content).
+// The path format depends on the registry type (local vs GitHub content vs HTTP).
 func (r *Registry) FilePath(rootDir, cfgFilePath string) (string, error) {
 	switch r.Type {
 	case RegistryTypeLocal:
 		return osfile.Abs(filepath.Dir(cfgFilePath), r.Path), nil
 	case RegistryTypeGitHubContent:
 		return filepath.Join(rootDir, "registries", r.Type, "github.com", r.RepoOwner, r.RepoName, r.Ref, r.Path), nil
+	case RegistryTypeHTTP:
+		// Use a hash of the URL template as a unique identifier
+		urlHash := sha256.Sum256([]byte(r.URL))
+		hashStr := hex.EncodeToString(urlHash[:])[:16]
+		registryFileName := "registry.yaml"
+		if r.Path != "" {
+			registryFileName = filepath.Base(r.Path)
+		}
+		return filepath.Join(rootDir, "registries", r.Type, hashStr, r.Version, registryFileName), nil
 	}
 	return "", errInvalidRegistryType
 }
@@ -107,6 +126,21 @@ func (r *Registry) validateGitHubContent() error {
 	}
 	if r.Ref == "main" || r.Ref == "master" {
 		return errRefCannotBeMainOrMaster
+	}
+	return nil
+}
+
+// validateHTTP validates an HTTP registry configuration.
+// It ensures the URL contains {{.Version}} and version is provided.
+func (r *Registry) validateHTTP() error {
+	if r.URL == "" {
+		return errURLIsRequired
+	}
+	if r.Version == "" {
+		return errVersionIsRequired
+	}
+	if !strings.Contains(r.URL, "{{.Version}}") {
+		return errURLMustContainVersion
 	}
 	return nil
 }

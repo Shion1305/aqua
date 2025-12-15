@@ -74,6 +74,39 @@ func TestRegistry_Validate(t *testing.T) { //nolint:funlen
 			},
 			isErr: true,
 		},
+		{
+			title: "http",
+			registry: &aqua.Registry{
+				Type:    "http",
+				URL:     "https://example.com/registry/{{.Version}}/registry.yaml",
+				Version: "v1.0.0",
+			},
+		},
+		{
+			title: "http url is required",
+			registry: &aqua.Registry{
+				Type:    "http",
+				Version: "v1.0.0",
+			},
+			isErr: true,
+		},
+		{
+			title: "http version is required",
+			registry: &aqua.Registry{
+				Type: "http",
+				URL:  "https://example.com/registry/{{.Version}}/registry.yaml",
+			},
+			isErr: true,
+		},
+		{
+			title: "http url must contain {{.Version}}",
+			registry: &aqua.Registry{
+				Type:    "http",
+				URL:     "https://example.com/registry/v1.0.0/registry.yaml",
+				Version: "v1.0.0",
+			},
+			isErr: true,
+		},
 	}
 	for _, d := range data {
 		t.Run(d.title, func(t *testing.T) {
@@ -123,6 +156,27 @@ func TestRegistry_FilePath(t *testing.T) {
 				Ref:       "v0.8.0",
 				Path:      "foo.yaml",
 				Type:      "github_content",
+			},
+		},
+		{
+			title:   "http with path",
+			exp:     "/root/.aqua/registries/http/06eeabea3ca08429/v1.0.0/custom.yaml",
+			rootDir: "/root/.aqua",
+			registry: &aqua.Registry{
+				Type:    "http",
+				URL:     "https://example.com/registry/{{.Version}}/registry.tar.gz",
+				Version: "v1.0.0",
+				Path:    "custom.yaml",
+			},
+		},
+		{
+			title:   "http without path",
+			exp:     "/root/.aqua/registries/http/06eeabea3ca08429/v1.2.3/registry.yaml",
+			rootDir: "/root/.aqua",
+			registry: &aqua.Registry{
+				Type:    "http",
+				URL:     "https://example.com/registry/{{.Version}}/registry.tar.gz",
+				Version: "v1.2.3",
 			},
 		},
 	}

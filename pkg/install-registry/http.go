@@ -99,11 +99,7 @@ func (is *Installer) extractHTTPRegistryArchive(ctx context.Context, logE *logru
 	defer is.fs.RemoveAll(tempDir) //nolint:errcheck
 
 	// Determine archive filename based on format
-	archiveExt := regist.Format
-	if archiveExt == "tar" {
-		archiveExt = "tar"
-	}
-	tempArchivePath := filepath.Join(tempDir, "registry."+archiveExt)
+	tempArchivePath := filepath.Join(tempDir, "registry."+regist.Format)
 
 	// Write archive to temporary file
 	if err := afero.WriteFile(is.fs, tempArchivePath, content, registryFilePermission); err != nil {
@@ -126,18 +122,13 @@ func (is *Installer) extractHTTPRegistryArchive(ctx context.Context, logE *logru
 	}
 
 	// Find the registry file in the extracted content
-	registryFileName := "registry.yaml"
+	var searchPaths []string
 	if regist.Path != "" {
-		registryFileName = filepath.Base(regist.Path)
-	}
-
-	// Try common registry file names if path not specified
-	searchPaths := []string{registryFileName}
-	if regist.Path == "" {
-		searchPaths = append(searchPaths, "registry.yml")
-	} else {
 		// If path is specified, use the full path
 		searchPaths = []string{regist.Path}
+	} else {
+		// Try common registry file names if path not specified
+		searchPaths = []string{"registry.yaml", "registry.yml"}
 	}
 
 	var extractedContent []byte
